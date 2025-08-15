@@ -1,8 +1,10 @@
 package main
 
 import (
+	"net/http"
 	"time"
 
+	"go.mattglei.ch/musicsync/internal/apis/applemusic"
 	"go.mattglei.ch/musicsync/internal/secrets"
 	"go.mattglei.ch/timber"
 )
@@ -12,8 +14,19 @@ func main() {
 	timber.Done("booted")
 
 	secrets.Load()
-	timber.Debug(secrets.ENV.AppleMusicAppToken)
-	timber.Debug(secrets.ENV.AppleMusicUserToken)
+
+	var (
+		client = http.Client{Timeout: 20 * time.Second}
+	)
+
+	_, err := applemusic.SendAppleMusicAPIRequest[applemusic.PlaylistResponse](
+		&client,
+		"/v1/me/library/playlists/p.AWXoZoxHLrvpJlY/tracks",
+	)
+	if err != nil {
+		timber.Fatal(err, "failed to make apple music api request")
+	}
+
 }
 
 func setupLogger() {
