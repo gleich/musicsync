@@ -2,7 +2,10 @@ module go.mattglei.ch/musicsync
 
 go 1.24.5
 
-require go.mattglei.ch/timber v1.2.5
+require (
+	github.com/golang-jwt/jwt/v5 v5.3.0
+	go.mattglei.ch/timber v1.2.5
+)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
