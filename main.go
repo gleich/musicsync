@@ -19,7 +19,7 @@ func main() {
 		client = http.Client{Timeout: 20 * time.Second}
 	)
 
-	_, err := applemusic.SendAppleMusicAPIRequest[applemusic.PlaylistResponse](
+	playlist, err := applemusic.SendAppleMusicAPIRequest[applemusic.PlaylistResponse](
 		&client,
 		"/v1/me/library/playlists/p.AWXoZoxHLrvpJlY/tracks",
 	)
@@ -27,6 +27,14 @@ func main() {
 		timber.Fatal(err, "failed to make apple music api request")
 	}
 
+	isrcs, err := applemusic.PlaylistISRCs(&client, playlist)
+	if err != nil {
+		timber.Fatal(err, "failed to load playlist isrcs")
+	}
+
+	for _, isrc := range isrcs {
+		timber.Debug(isrc)
+	}
 }
 
 func setupLogger() {
