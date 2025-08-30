@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"go.mattglei.ch/musicsync/internal/apis"
 	"go.mattglei.ch/musicsync/internal/secrets"
@@ -12,6 +13,7 @@ import (
 type AccessToken struct {
 	Token     string `json:"access_token"`
 	ExpiresIn int    `json:"expires_in"`
+	ExpiresAt time.Time
 }
 
 func Authorize(client *http.Client) (AccessToken, error) {
@@ -36,6 +38,8 @@ func Authorize(client *http.Client) (AccessToken, error) {
 		return AccessToken{}, fmt.Errorf("%w performing request failed", err)
 
 	}
+
+	resp.ExpiresAt = time.Now().Add(time.Duration(resp.ExpiresIn)*time.Second - 30*time.Second)
 
 	return resp, nil
 }

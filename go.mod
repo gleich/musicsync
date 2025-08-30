@@ -3,6 +3,7 @@ module go.mattglei.ch/musicsync
 go 1.24.5
 
 require (
+	github.com/BurntSushi/toml v1.5.0
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
