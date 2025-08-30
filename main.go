@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.mattglei.ch/musicsync/internal/apis/applemusic"
+	"go.mattglei.ch/musicsync/internal/apis/spotify"
 	"go.mattglei.ch/musicsync/internal/secrets"
 	"go.mattglei.ch/timber"
 )
@@ -19,22 +19,25 @@ func main() {
 		client = http.Client{Timeout: 20 * time.Second}
 	)
 
-	playlist, err := applemusic.SendAppleMusicAPIRequest[applemusic.PlaylistResponse](
-		&client,
-		"/v1/me/library/playlists/p.AWXoZoxHLrvpJlY/tracks",
-	)
+	accessToken, err := spotify.Authorize(&client)
 	if err != nil {
-		timber.Fatal(err, "failed to make apple music api request")
+		timber.Fatal(err, "failed to authorize spotify")
 	}
+	timber.Debug(accessToken.Token)
 
-	isrcs, err := applemusic.PlaylistISRCs(&client, playlist)
-	if err != nil {
-		timber.Fatal(err, "failed to load playlist isrcs")
-	}
+	// playlist, err := applemusic.SendAppleMusicAPIRequest[applemusic.PlaylistResponse](
+	// 	&client,
+	// 	"/v1/me/library/playlists/p.AWXoZoxHLrvpJlY/tracks",
+	// )
+	// if err != nil {
+	// 	timber.Fatal(err, "failed to make apple music api request")
+	// }
 
-	for _, isrc := range isrcs {
-		timber.Debug(isrc)
-	}
+	// isrcs, err := applemusic.PlaylistISRCs(&client, playlist)
+	// if err != nil {
+	// 	timber.Fatal(err, "failed to load playlist isrcs")
+	// }
+
 }
 
 func setupLogger() {

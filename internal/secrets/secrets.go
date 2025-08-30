@@ -15,6 +15,9 @@ var ENV Secrets
 type Secrets struct {
 	AppleMusicAppToken  string `env:"APPLE_MUSIC_APP_TOKEN"`
 	AppleMusicUserToken string `env:"APPLE_MUSIC_USER_TOKEN"`
+
+	SpotifyClientID     string `env:"SPOTIFY_CLIENT_ID"`
+	SpotifyClientSecret string `env:"SPOTIFY_CLIENT_SECRET"`
 }
 
 func Load() {
