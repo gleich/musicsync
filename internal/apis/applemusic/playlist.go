@@ -16,7 +16,7 @@ type PlaylistResponse struct {
 	Next string `json:"next"`
 }
 
-func Playlists(client *http.Client, id string) ([]string, error) {
+func PlaylistSongs(client *http.Client, id string) ([]string, error) {
 	path := fmt.Sprintf("/v1/me/library/playlists/%s/tracks", id)
 	ids := []string{}
 	for {

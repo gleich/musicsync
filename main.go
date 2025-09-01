@@ -28,7 +28,7 @@ func main() {
 		timber.Fatal(err, "failed to authorize spotify")
 	}
 
-	appleMusicIDs, err := applemusic.Playlists(&client, "p.AWXoZoxHLrvpJlY")
+	appleMusicIDs, err := applemusic.PlaylistSongs(&client, "p.qQXLxPpFA75zg8e")
 	if err != nil {
 		timber.Fatal(err, "failed to get apple music playlist")
 	}
@@ -38,7 +38,7 @@ func main() {
 		timber.Fatal(err, "failed to get isrc for", len(appleMusicIDs), "ids from apple music")
 	}
 
-	spotifySongs, err := spotify.PlaylistISRCs(&client, &accessToken, "5SnoWhWIJRmJNkvdxCpMAe")
+	spotifySongs, err := spotify.PlaylistSongs(&client, &accessToken, "6MLAGkQPdSBMjit5O1hrws")
 	if err != nil {
 		timber.Fatal(err, "failed to get playlist data")
 	}
