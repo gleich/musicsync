@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"go.mattglei.ch/musicsync/internal/apis/applemusic"
 	"go.mattglei.ch/musicsync/internal/apis/spotify"
 	"go.mattglei.ch/musicsync/internal/config"
 	"go.mattglei.ch/musicsync/internal/secrets"
@@ -26,32 +27,18 @@ func main() {
 		timber.Fatal(err, "failed to authorize spotify")
 	}
 
-	// playlist, err := applemusic.SendAppleMusicAPIRequest[applemusic.PlaylistResponse](
-	// 	&client,
-	// 	"/v1/me/library/playlists/p.AWXoZoxHLrvpJlY/tracks",
-	// )
-	// if err != nil {
-	// 	timber.Fatal(err, "failed to make apple music api request")
-	// }
-
-	// _, err = applemusic.PlaylistISRCs(&client, playlist)
-	// if err != nil {
-	// 	timber.Fatal(err, "failed to load playlist isrcs")
-	// }
-
-	playlist, err := spotify.SendSpotifyAPIRequest[spotify.PlaylistResponse](
-		&client,
-		&accessToken,
-		"/v1/playlists/6MLAGkQPdSBMjit5O1hrws",
-	)
+	isrcs, err := spotify.PlaylistISRCs(&client, &accessToken, "5SnoWhWIJRmJNkvdxCpMAe")
 	if err != nil {
-		timber.Fatal(err, "failed to load playlist")
+		timber.Fatal(err, "failed to get playlist data")
 	}
 
-	timber.Debug("track length:", len(playlist.Tracks.Items))
-	for _, track := range playlist.Tracks.Items {
-		timber.Debug(track.Track.ExternalIDs.ISRC)
+	timber.Debug(len(isrcs), "isrcs loaded")
+
+	ids, err := applemusic.Playlists(&client, "p.AWXoZoxHLrvpJlY")
+	if err != nil {
+		timber.Fatal(err, "failed to get apple music playlist")
 	}
+	timber.Debug(len(ids), "songs from apple music playlist loaded")
 }
 
 func setupLogger() {

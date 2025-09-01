@@ -15,19 +15,19 @@ type CatalogSongsResponse struct {
 	}
 }
 
-func PlaylistISRCs(client *http.Client, playlist PlaylistResponse) ([]string, error) {
+func PlaylistISRCs(client *http.Client, ids []string) ([]string, error) {
 	// break down songs into chunks of 300 songs (limit for searching using this endpoint)
 	var (
 		groups     = [][]string{{}}
 		added      = 0
 		groupIndex = 0
 	)
-	for _, song := range playlist.Data {
+	for _, id := range ids {
 		if len(groups[groupIndex]) > 300 {
 			groups = append(groups, []string{})
 			groupIndex++
 		}
-		groups[groupIndex] = append(groups[groupIndex], song.Attributes.PlayParams.ReportingID)
+		groups[groupIndex] = append(groups[groupIndex], id)
 		added++
 	}
 
