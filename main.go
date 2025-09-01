@@ -46,6 +46,12 @@ func main() {
 	toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
 	timber.Debug("toAdd:", toAdd)
 	timber.Debug("toDelete:", toDelete)
+
+	toAddISRCs, err := spotify.FindAppleMusicSongs(&client, &accessToken, toAdd)
+	if err != nil {
+		timber.Fatal(err, "failed to find isrcs in spotify")
+	}
+	timber.Debug("found", len(toAddISRCs), "ids in spotify using isrc")
 }
 
 func setupLogger() {

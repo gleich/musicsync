@@ -7,15 +7,19 @@ import (
 	"strings"
 )
 
+type Song struct {
+	Name   string `json:"name"`
+	ISRC   string `json:"isrc "`
+	Artist string `json:"artistName"`
+}
+
 type CatalogSongsResponse struct {
 	Data []struct {
-		Attributes struct {
-			ISRC string `json:"isrc"`
-		}
+		Attributes Song
 	}
 }
 
-func PlaylistISRCs(client *http.Client, ids []string) ([]string, error) {
+func PlaylistISRCs(client *http.Client, ids []string) ([]Song, error) {
 	// break down songs into chunks of 300 songs (limit for searching using this endpoint)
 	var (
 		groups     = [][]string{{}}
@@ -31,25 +35,25 @@ func PlaylistISRCs(client *http.Client, ids []string) ([]string, error) {
 		added++
 	}
 
-	isrcs := []string{}
+	songs := []Song{}
 	for _, group := range groups {
 		ids := strings.Join(group, ",")
 		params := url.Values{"ids": {ids}}
-		songs, err := SendAppleMusicAPIRequest[CatalogSongsResponse](
+		searchedSongs, err := SendAppleMusicAPIRequest[CatalogSongsResponse](
 			client,
 			fmt.Sprintf("/v1/catalog/us/songs?%s", params.Encode()),
 		)
 		if err != nil {
-			return []string{}, fmt.Errorf(
+			return []Song{}, fmt.Errorf(
 				"%w failed to get catalog data for following ids: %s",
 				err,
 				ids,
 			)
 		}
-		for _, song := range songs.Data {
-			isrcs = append(isrcs, song.Attributes.ISRC)
+		for _, song := range searchedSongs.Data {
+			songs = append(songs, song.Attributes)
 		}
 	}
 
-	return isrcs, nil
+	return songs, nil
 }

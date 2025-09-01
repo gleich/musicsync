@@ -18,11 +18,6 @@ type PlaylistResponse struct {
 	Next string `json:"next"`
 }
 
-type Song struct {
-	ID   string
-	ISRC string
-}
-
 func PlaylistSongs(client *http.Client, token *AccessToken, id string) ([]Song, error) {
 	path := fmt.Sprintf("/v1/playlists/%s/tracks", id)
 	songs := []Song{}

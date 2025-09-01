@@ -1,22 +1,23 @@
 package diff
 
 import (
+	"go.mattglei.ch/musicsync/internal/apis/applemusic"
 	"go.mattglei.ch/musicsync/internal/apis/spotify"
 )
 
 func PlaylistDiff(
-	appleMusicSongs []string,
+	appleMusicSongs []applemusic.Song,
 	spotifySongs []spotify.Song,
-) ([]string, []spotify.Song) {
+) ([]applemusic.Song, []spotify.Song) {
 	var (
-		toAdd    []string
+		toAdd    []applemusic.Song
 		toDelete []spotify.Song
 	)
 
 	for _, appleMusicSong := range appleMusicSongs {
 		var contains = false
 		for _, spotifySong := range spotifySongs {
-			if spotifySong.ISRC == appleMusicSong {
+			if spotifySong.ISRC == appleMusicSong.ISRC {
 				contains = true
 				break
 			}
@@ -29,7 +30,7 @@ func PlaylistDiff(
 	for _, spotifySong := range spotifySongs {
 		var contains = false
 		for _, appleMusicSong := range appleMusicSongs {
-			if spotifySong.ISRC == appleMusicSong {
+			if spotifySong.ISRC == appleMusicSong.ISRC {
 				contains = true
 			}
 		}
