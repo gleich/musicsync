@@ -7,6 +7,7 @@ import (
 	"go.mattglei.ch/musicsync/internal/apis/applemusic"
 	"go.mattglei.ch/musicsync/internal/apis/spotify"
 	"go.mattglei.ch/musicsync/internal/config"
+	"go.mattglei.ch/musicsync/internal/diff"
 	"go.mattglei.ch/musicsync/internal/secrets"
 	"go.mattglei.ch/timber"
 )
@@ -27,18 +28,24 @@ func main() {
 		timber.Fatal(err, "failed to authorize spotify")
 	}
 
-	isrcs, err := spotify.PlaylistISRCs(&client, &accessToken, "5SnoWhWIJRmJNkvdxCpMAe")
+	appleMusicIDs, err := applemusic.Playlists(&client, "p.AWXoZoxHLrvpJlY")
+	if err != nil {
+		timber.Fatal(err, "failed to get apple music playlist")
+	}
+
+	appleMusicSongs, err := applemusic.PlaylistISRCs(&client, appleMusicIDs)
+	if err != nil {
+		timber.Fatal(err, "failed to get isrc for", len(appleMusicIDs), "ids from apple music")
+	}
+
+	spotifySongs, err := spotify.PlaylistISRCs(&client, &accessToken, "5SnoWhWIJRmJNkvdxCpMAe")
 	if err != nil {
 		timber.Fatal(err, "failed to get playlist data")
 	}
 
-	timber.Debug(len(isrcs), "isrcs loaded")
-
-	ids, err := applemusic.Playlists(&client, "p.AWXoZoxHLrvpJlY")
-	if err != nil {
-		timber.Fatal(err, "failed to get apple music playlist")
-	}
-	timber.Debug(len(ids), "songs from apple music playlist loaded")
+	toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
+	timber.Debug("toAdd:", toAdd)
+	timber.Debug("toDelete:", toDelete)
 }
 
 func setupLogger() {
