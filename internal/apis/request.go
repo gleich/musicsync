@@ -25,49 +25,63 @@ var ErrWarning = errors.New("non-critical error encountered during request")
 // unexpected EOFs, and TCP connection resets—by logging warnings and returning a non-critical
 // WarningError. Non-2xx HTTP responses are also treated as warnings.
 func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(req.Context(), 1*time.Minute)
-	defer cancel()
-	req = req.WithContext(ctx)
+	var body []byte
+	for {
+		ctx, cancel := context.WithTimeout(req.Context(), 1*time.Minute)
+		defer cancel()
+		req = req.WithContext(ctx)
 
-	resp, err := client.Do(req)
-	if err != nil {
-		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-			timber.Warning(logPrefix, "connection timed out for", req.URL.Path)
-			return []byte{}, ErrWarning
+		resp, err := client.Do(req)
+		if err != nil {
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				timber.Warning(logPrefix, "connection timed out for", req.URL.Path)
+				return []byte{}, ErrWarning
+			}
+			if errors.Is(err, context.DeadlineExceeded) {
+				timber.Warning(logPrefix, "request timed out for", req.URL.Path)
+				return []byte{}, ErrWarning
+			}
+			if errors.Is(err, io.ErrUnexpectedEOF) {
+				timber.Warning(logPrefix, "unexpected EOF from", req.URL.Path)
+				return []byte{}, ErrWarning
+			}
+			if strings.Contains(err.Error(), "read: connection reset by peer") {
+				timber.Warning(logPrefix, "tcp connection reset by peer from", req.URL.Path)
+				return []byte{}, ErrWarning
+			}
+			return []byte{}, fmt.Errorf("%w sending request to %s failed", err, req.URL.String())
 		}
-		if errors.Is(err, context.DeadlineExceeded) {
-			timber.Warning(logPrefix, "request timed out for", req.URL.Path)
-			return []byte{}, ErrWarning
-		}
-		if errors.Is(err, io.ErrUnexpectedEOF) {
-			timber.Warning(logPrefix, "unexpected EOF from", req.URL.Path)
-			return []byte{}, ErrWarning
-		}
-		if strings.Contains(err.Error(), "read: connection reset by peer") {
-			timber.Warning(logPrefix, "tcp connection reset by peer from", req.URL.Path)
-			return []byte{}, ErrWarning
-		}
-		return []byte{}, fmt.Errorf("%w sending request to %s failed", err, req.URL.String())
-	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return []byte{}, fmt.Errorf("%w reading response body failed", err)
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		timber.Warning(
-			logPrefix,
-			resp.StatusCode,
-			fmt.Sprintf("(%s)", strings.ToLower(http.StatusText(resp.StatusCode))),
-			"from",
-			req.URL.String(),
-		)
-		return []byte{}, ErrWarning
-	}
+		if resp.StatusCode == http.StatusTooManyRequests {
+			timber.Warning(
+				http.StatusTooManyRequests,
+				"error (rate limiting). Waiting 30 seconds and trying request again",
+			)
+			time.Sleep(30 * time.Second)
+			continue
+		}
 
-	err = resp.Body.Close()
-	if err != nil {
-		return []byte{}, fmt.Errorf("%w failed to close response body", err)
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			timber.Warning(
+				logPrefix,
+				resp.StatusCode,
+				fmt.Sprintf("(%s)", strings.ToLower(http.StatusText(resp.StatusCode))),
+				"from",
+				req.URL.String(),
+			)
+			return []byte{}, ErrWarning
+		}
+
+		body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return []byte{}, fmt.Errorf("%w reading response body failed", err)
+		}
+
+		err = resp.Body.Close()
+		if err != nil {
+			return []byte{}, fmt.Errorf("%w failed to close response body", err)
+		}
+		break
 	}
 
 	return body, nil
