@@ -48,16 +48,28 @@ func main() {
 		timber.Fatal(err, "failed to get playlist data")
 	}
 
+	spotifyPlaylistSnapshotID, err := spotify.PlaylistSnapshot(&spotifyClient, spotifyPlaylistID)
+	if err != nil {
+		timber.Fatal(err, "failed to get snapshot id for playlist")
+	}
+
+	timber.Debug(spotifyPlaylistSnapshotID)
+
 	toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
 	timber.Debug("toAdd:", toAdd)
 	timber.Debug("toDelete:", toDelete)
 
-	songsToAdd, err := spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
-	if err != nil {
-		timber.Fatal(err, "failed to find isrcs in spotify")
-	}
+	// songsToAdd, err := spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
+	// if err != nil {
+	// 	timber.Fatal(err, "failed to find isrcs in spotify")
+	// }
 
-	err = spotify.AddSongs(&spotifyClient, spotifyPlaylistID, songsToAdd)
+	// err = spotify.EditSongs(&spotifyClient, spotifyPlaylistID, songsToAdd, true)
+	// if err != nil {
+	// 	timber.Fatal(err, "failed to add songs to playlist")
+	// }
+
+	err = spotify.EditSongs(&spotifyClient, spotifyPlaylistID, toDelete, &spotifyPlaylistSnapshotID)
 	if err != nil {
 		timber.Fatal(err, "failed to add songs to playlist")
 	}

@@ -11,6 +11,10 @@ import (
 )
 
 type PlaylistResponse struct {
+	SnapshotID string `json:"snapshot_id"`
+}
+
+type PlaylistTracksResponse struct {
 	Items []struct {
 		Track struct {
 			ID          string `json:"id"`
@@ -26,11 +30,29 @@ type addSongsPayload struct {
 	URIs []string `json:"uris"`
 }
 
+type removeSongsPayload struct {
+	Tracks     []track `json:"tracks"`
+	SnapshotID string  `json:"snapshot_id"`
+}
+
+type track struct {
+	URI string `json:"uri"`
+}
+
+func PlaylistSnapshot(client *SpotifyClient, id string) (string, error) {
+	req := spotifyRequest{Method: http.MethodGet, Path: fmt.Sprintf("/v1/playlists/%s", id)}
+	resp, err := sendSpotifyAPIRequest[PlaylistResponse](client, req)
+	if err != nil {
+		return "", fmt.Errorf("%w failed to make request for playlist data", err)
+	}
+	return resp.SnapshotID, nil
+}
+
 func PlaylistSongs(client *SpotifyClient, id string) ([]Song, error) {
 	req := spotifyRequest{Method: http.MethodGet, Path: fmt.Sprintf("/v1/playlists/%s/tracks", id)}
 	songs := []Song{}
 	for {
-		resp, err := sendSpotifyAPIRequest[PlaylistResponse](client, req)
+		resp, err := sendSpotifyAPIRequest[PlaylistTracksResponse](client, req)
 		if err != nil {
 			return []Song{}, fmt.Errorf(
 				"%w failed to get spotify playlist data for: %s",
@@ -54,24 +76,42 @@ func PlaylistSongs(client *SpotifyClient, id string) ([]Song, error) {
 	return songs, nil
 }
 
-func AddSongs(client *SpotifyClient, id string, songs []Song) error {
+func EditSongs(client *SpotifyClient, id string, songs []Song, snapshotID *string) error {
 	batches := utils.Batch(songs, 100)
+	var method string
+	if snapshotID == nil {
+		method = http.MethodGet
+	} else {
+		method = http.MethodDelete
+	}
 
 	for _, batch := range batches {
-		payload := addSongsPayload{URIs: []string{}}
+		tracks := []string{}
 		for _, song := range batch {
-			payload.URIs = append(payload.URIs, fmt.Sprintf("spotify:track:%s", song.ID))
+			tracks = append(tracks, fmt.Sprintf("spotify:track:%s", song.ID))
 		}
 
+		var payload any
+		if snapshotID == nil {
+			payload = addSongsPayload{URIs: tracks}
+		} else {
+			removeTracks := []track{}
+			for _, t := range tracks {
+				removeTracks = append(removeTracks, track{URI: t})
+			}
+			payload = removeSongsPayload{Tracks: removeTracks, SnapshotID: *snapshotID}
+		}
 		binary, err := json.Marshal(payload)
 		if err != nil {
-			return fmt.Errorf("%w failed to wrap payload", err)
+			return fmt.Errorf("%w failed to json marshal payload", err)
 		}
+
+		fmt.Println(string(binary))
 
 		_, err = sendSpotifyAPIRequest[any](
 			client,
 			spotifyRequest{
-				Method: http.MethodPost,
+				Method: method,
 				Path:   fmt.Sprintf("/v1/playlists/%s/tracks", id),
 				Body:   bytes.NewReader(binary),
 			},
