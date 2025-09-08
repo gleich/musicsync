@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"go.mattglei.ch/musicsync/internal/utils"
 )
 
 type Song struct {
 	Name   string `json:"name"`
-	ISRC   string `json:"isrc "`
+	ISRC   string `json:"isrc"`
 	Artist string `json:"artistName"`
 }
 
@@ -20,21 +22,7 @@ type CatalogSongsResponse struct {
 }
 
 func PlaylistISRCs(client *http.Client, ids []string) ([]Song, error) {
-	// break down songs into chunks of 300 songs (limit for searching using this endpoint)
-	var (
-		groups     = [][]string{{}}
-		added      = 0
-		groupIndex = 0
-	)
-	for _, id := range ids {
-		if len(groups[groupIndex]) > 300 {
-			groups = append(groups, []string{})
-			groupIndex++
-		}
-		groups[groupIndex] = append(groups[groupIndex], id)
-		added++
-	}
-
+	groups := utils.Batch(ids, 300)
 	songs := []Song{}
 	for _, group := range groups {
 		ids := strings.Join(group, ",")

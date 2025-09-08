@@ -23,8 +23,7 @@ type searchResponse struct {
 }
 
 func FindAppleMusicSongs(
-	client *http.Client,
-	token *AccessToken,
+	client *SpotifyClient,
 	appleMusicSongs []applemusic.Song,
 ) ([]Song, error) {
 	songs := []Song{}
@@ -34,10 +33,12 @@ func FindAppleMusicSongs(
 			"type":  {"track"},
 			"limit": {"1"},
 		}
-		resp, err := SendSpotifyAPIRequest[searchResponse](
+		resp, err := sendSpotifyAPIRequest[searchResponse](
 			client,
-			token,
-			fmt.Sprintf("/v1/search?%s", params.Encode()),
+			spotifyRequest{
+				Method: http.MethodGet,
+				Path:   fmt.Sprintf("/v1/search?%s", params.Encode()),
+			},
 		)
 		if err != nil {
 			return []Song{}, fmt.Errorf("%w failed to search for song with isrc of %s", err, song)
@@ -46,10 +47,12 @@ func FindAppleMusicSongs(
 			timber.Warning("isrc for", song.Name, "not found in spotify. ISRC:", song.ISRC)
 
 			params.Set("q", fmt.Sprintf("track:\"%s\" artist:\"%s\"", song.Name, song.Artist))
-			trackSearchResponse, err := SendSpotifyAPIRequest[searchResponse](
+			trackSearchResponse, err := sendSpotifyAPIRequest[searchResponse](
 				client,
-				token,
-				fmt.Sprintf("/v1/search?%s", params.Encode()),
+				spotifyRequest{
+					Method: http.MethodGet,
+					Path:   fmt.Sprintf("/v1/search?%s", params.Encode()),
+				},
 			)
 			if err != nil {
 				return []Song{}, fmt.Errorf(

@@ -1,6 +1,7 @@
 package spotify
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,17 +11,18 @@ import (
 	"go.mattglei.ch/musicsync/internal/secrets"
 )
 
-type AccessToken struct {
-	Token     string `json:"access_token"`
-	ExpiresIn int    `json:"expires_in"`
-	ExpiresAt time.Time
+type Tokens struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	ExpiresAt    time.Time
 }
 
-func Authorize(client *http.Client) (AccessToken, error) {
+func (c *SpotifyClient) Authorize() error {
 	params := url.Values{
-		"grant_type":    {"client_credentials"},
+		"grant_type":    {"refresh_token"},
+		"refresh_token": {c.Tokens.RefreshToken},
 		"client_id":     {secrets.ENV.SpotifyClientID},
-		"client_secret": {secrets.ENV.SpotifyClientSecret},
 	}
 
 	req, err := http.NewRequest(
@@ -29,17 +31,23 @@ func Authorize(client *http.Client) (AccessToken, error) {
 		nil,
 	)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(
+		secrets.ENV.SpotifyClientID+":"+secrets.ENV.SpotifyClientSecret,
+	)))
 	if err != nil {
-		return AccessToken{}, fmt.Errorf("%w creating new request failed", err)
+		return fmt.Errorf("%w creating new request failed", err)
 	}
 
-	resp, err := apis.RequestJSON[AccessToken]("[spotify]", client, req)
+	resp, err := apis.RequestJSON[Tokens]("[spotify]", c.HttpClient, req)
 	if err != nil {
-		return AccessToken{}, fmt.Errorf("%w performing request failed", err)
+		return fmt.Errorf("%w performing request failed", err)
 
 	}
 
 	resp.ExpiresAt = time.Now().Add(time.Duration(resp.ExpiresIn)*time.Second - 30*time.Second)
 
-	return resp, nil
+	c.mutex.Lock()
+	c.Tokens = &resp
+	c.mutex.Unlock()
+	return nil
 }

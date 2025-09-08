@@ -20,25 +20,30 @@ func main() {
 	config.Load()
 
 	var (
-		client = http.Client{Timeout: 20 * time.Second}
+		httpClient    = http.Client{Timeout: 20 * time.Second}
+		spotifyClient = spotify.SpotifyClient{
+			HttpClient: &httpClient,
+			Tokens:     &spotify.Tokens{RefreshToken: secrets.ENV.SpotifyRefreshToken},
+		}
 	)
 
-	accessToken, err := spotify.Authorize(&client)
+	err := spotifyClient.Authorize()
 	if err != nil {
 		timber.Fatal(err, "failed to authorize spotify")
 	}
 
-	appleMusicIDs, err := applemusic.PlaylistSongs(&client, "p.qQXLxPpFA75zg8e")
+	appleMusicIDs, err := applemusic.PlaylistSongs(&httpClient, "p.AWXoZoxHLrvpJlY")
 	if err != nil {
 		timber.Fatal(err, "failed to get apple music playlist")
 	}
 
-	appleMusicSongs, err := applemusic.PlaylistISRCs(&client, appleMusicIDs)
+	appleMusicSongs, err := applemusic.PlaylistISRCs(&httpClient, appleMusicIDs)
 	if err != nil {
 		timber.Fatal(err, "failed to get isrc for", len(appleMusicIDs), "ids from apple music")
 	}
 
-	spotifySongs, err := spotify.PlaylistSongs(&client, &accessToken, "6MLAGkQPdSBMjit5O1hrws")
+	spotifyPlaylistID := "6MLAGkQPdSBMjit5O1hrws"
+	spotifySongs, err := spotify.PlaylistSongs(&spotifyClient, spotifyPlaylistID)
 	if err != nil {
 		timber.Fatal(err, "failed to get playlist data")
 	}
@@ -47,11 +52,15 @@ func main() {
 	timber.Debug("toAdd:", toAdd)
 	timber.Debug("toDelete:", toDelete)
 
-	toAddISRCs, err := spotify.FindAppleMusicSongs(&client, &accessToken, toAdd)
+	songsToAdd, err := spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
 	if err != nil {
 		timber.Fatal(err, "failed to find isrcs in spotify")
 	}
-	timber.Debug("found", len(toAddISRCs), "ids in spotify using isrc")
+
+	err = spotify.AddSongs(&spotifyClient, spotifyPlaylistID, songsToAdd)
+	if err != nil {
+		timber.Fatal(err, "failed to add songs to playlist")
+	}
 }
 
 func setupLogger() {

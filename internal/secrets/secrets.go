@@ -18,6 +18,7 @@ type Secrets struct {
 
 	SpotifyClientID     string `env:"SPOTIFY_CLIENT_ID"`
 	SpotifyClientSecret string `env:"SPOTIFY_CLIENT_SECRET"`
+	SpotifyRefreshToken string `env:"SPOTIFY_REFRESH_TOKEN"`
 }
 
 func Load() {
