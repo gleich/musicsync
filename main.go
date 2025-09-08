@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -32,46 +33,74 @@ func main() {
 		timber.Fatal(err, "failed to authorize spotify")
 	}
 
-	appleMusicIDs, err := applemusic.PlaylistSongs(&httpClient, "p.AWXoZoxHLrvpJlY")
-	if err != nil {
-		timber.Fatal(err, "failed to get apple music playlist")
-	}
+	for _, playlist := range config.Configuration.Playlists {
+		fmt.Println()
+		timber.Info("Running sync for playlist:", playlist.Name)
+		appleMusicIDs, err := applemusic.PlaylistSongs(&httpClient, playlist.AppleMusicID)
+		if err != nil {
+			timber.Fatal(err, "failed to get apple music playlist")
+		}
+		timber.Done("[1/8] Found", len(appleMusicIDs), "from playlist in APPLE MUSIC")
 
-	appleMusicSongs, err := applemusic.PlaylistISRCs(&httpClient, appleMusicIDs)
-	if err != nil {
-		timber.Fatal(err, "failed to get isrc for", len(appleMusicIDs), "ids from apple music")
-	}
+		appleMusicSongs, err := applemusic.PlaylistISRCs(&httpClient, appleMusicIDs)
+		if err != nil {
+			timber.Fatal(err, "failed to get isrc for", len(appleMusicIDs), "ids from apple music")
+		}
+		timber.Done(
+			"[2/8] Got",
+			len(appleMusicSongs),
+			"global isrc values for songs in APPLE MUSIC",
+		)
 
-	spotifyPlaylistID := "6MLAGkQPdSBMjit5O1hrws"
-	spotifySongs, err := spotify.PlaylistSongs(&spotifyClient, spotifyPlaylistID)
-	if err != nil {
-		timber.Fatal(err, "failed to get playlist data")
-	}
+		spotifySongs, err := spotify.PlaylistSongs(&spotifyClient, playlist.SpotifyID)
+		if err != nil {
+			timber.Fatal(err, "failed to get playlist data")
+		}
+		timber.Done(
+			"[3/8] Found",
+			len(spotifySongs),
+			"songs in the current SPOTIFY playlist",
+		)
 
-	spotifyPlaylistSnapshotID, err := spotify.PlaylistSnapshot(&spotifyClient, spotifyPlaylistID)
-	if err != nil {
-		timber.Fatal(err, "failed to get snapshot id for playlist")
-	}
+		spotifyPlaylistSnapshotID, err := spotify.PlaylistSnapshot(
+			&spotifyClient,
+			playlist.SpotifyID,
+		)
+		if err != nil {
+			timber.Fatal(err, "failed to get snapshot id for playlist")
+		}
+		timber.Done("[4/8] Got playlist version snapshot")
 
-	timber.Debug(spotifyPlaylistSnapshotID)
+		toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
+		timber.Done("[5/8]", len(toAdd), "songs to add.", len(toDelete), "songs to remove.")
 
-	toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
-	timber.Debug("toAdd:", toAdd)
-	timber.Debug("toDelete:", toDelete)
+		songsToAdd, err := spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
+		if err != nil {
+			timber.Fatal(err, "failed to find isrcs in spotify")
+		}
+		timber.Done("[6/8]", len(toAdd), "songs to add.", len(toDelete), "songs to remove.")
 
-	// songsToAdd, err := spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
-	// if err != nil {
-	// 	timber.Fatal(err, "failed to find isrcs in spotify")
-	// }
+		if len(toDelete) != 0 {
+			err = spotify.EditSongs(
+				&spotifyClient,
+				playlist.SpotifyID,
+				toDelete,
+				&spotifyPlaylistSnapshotID,
+			)
+			if err != nil {
+				timber.Fatal(err, "failed to remove songs to playlist")
+			}
+			timber.Done("[7/8]", "Removed", len(toDelete), "songs")
+		} else {
+			timber.Info("[7/8] Skipped as there are no songs to remove")
+		}
 
-	// err = spotify.EditSongs(&spotifyClient, spotifyPlaylistID, songsToAdd, true)
-	// if err != nil {
-	// 	timber.Fatal(err, "failed to add songs to playlist")
-	// }
-
-	err = spotify.EditSongs(&spotifyClient, spotifyPlaylistID, toDelete, &spotifyPlaylistSnapshotID)
-	if err != nil {
-		timber.Fatal(err, "failed to add songs to playlist")
+		err = spotify.EditSongs(&spotifyClient, playlist.SpotifyID, songsToAdd, nil)
+		if err != nil {
+			timber.Fatal(err, "failed to add songs to playlist")
+		}
+		timber.Done("[8/8]", "Added", len(toAdd), "songs")
+		fmt.Println()
 	}
 }
 

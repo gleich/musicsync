@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"go.mattglei.ch/musicsync/internal/apis"
-	"go.mattglei.ch/timber"
 )
 
 type SpotifyClient struct {
@@ -47,7 +46,6 @@ func sendSpotifyAPIRequest[T any](
 	}
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.Tokens.AccessToken))
-	timber.Debug(client.Tokens.AccessToken)
 
 	resp, err := apis.RequestJSON[T]("[spotify]", client.HttpClient, req)
 	if err != nil {

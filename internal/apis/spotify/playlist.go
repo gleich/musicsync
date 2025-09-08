@@ -80,7 +80,7 @@ func EditSongs(client *SpotifyClient, id string, songs []Song, snapshotID *strin
 	batches := utils.Batch(songs, 100)
 	var method string
 	if snapshotID == nil {
-		method = http.MethodGet
+		method = http.MethodPost
 	} else {
 		method = http.MethodDelete
 	}
@@ -105,8 +105,6 @@ func EditSongs(client *SpotifyClient, id string, songs []Song, snapshotID *strin
 		if err != nil {
 			return fmt.Errorf("%w failed to json marshal payload", err)
 		}
-
-		fmt.Println(string(binary))
 
 		_, err = sendSpotifyAPIRequest[any](
 			client,

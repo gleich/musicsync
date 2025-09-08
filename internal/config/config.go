@@ -12,9 +12,9 @@ type ConfigurationData struct {
 }
 
 type Playlist struct {
-	Name       string `toml:"name"`
-	AppleMusic string `toml:"apple_music"`
-	Spotify    string `toml:"spotify"`
+	Name         string `toml:"name"`
+	AppleMusicID string `toml:"apple_music"`
+	SpotifyID    string `toml:"spotify"`
 }
 
 func Load() {
