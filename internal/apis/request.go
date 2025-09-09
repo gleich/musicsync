@@ -87,11 +87,24 @@ func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, 
 	return body, nil
 }
 
-// RequestJSON sends an HTTP request using the provided client, reads the response body, and
-// unmarshals the JSON into a value of type T. It relies on Request to perform the HTTP call. In
-// case of a request failure or JSON parsing error, it logs the relevant details and returns the
-// error.
-func RequestJSON[T any](logPrefix string, client *http.Client, req *http.Request) (T, error) {
+// RequestJSON sends an HTTP request using the provided client, reads the response body,
+// and, unless told otherwise, unmarshals it into a value of type T. The HTTP call itself
+// is delegated to Request, and any error from that call is returned.
+//
+// If noJsonResponse is false, the response body is unmarshaled into T using encoding/json.
+// On a JSON parsing error, the raw body is logged at debug level and the error is returned.
+//
+// If noJsonResponse is true, the body is not unmarshaled and the zero value of T is
+// returned with any error from Request. Use this for endpoints that return no body
+// (e.g., 204 No Content) or non-JSON payloads.
+//
+// On any error path, the zero value of T is returned alongside the error.
+func RequestJSON[T any](
+	logPrefix string,
+	client *http.Client,
+	req *http.Request,
+	noJsonResponse bool,
+) (T, error) {
 	var data T
 
 	body, err := Request(logPrefix, client, req)
@@ -99,10 +112,12 @@ func RequestJSON[T any](logPrefix string, client *http.Client, req *http.Request
 		return data, err
 	}
 
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		timber.Debug(string(body))
-		return data, fmt.Errorf("%w failed to parse json", err)
+	if !noJsonResponse {
+		err = json.Unmarshal(body, &data)
+		if err != nil {
+			timber.Debug(string(body))
+			return data, fmt.Errorf("%w failed to parse json", err)
+		}
 	}
 
 	return data, nil

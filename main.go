@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	setupLogger()
+	newYork := setupLogger()
 	timber.Done("booted")
 
 	secrets.Load()
@@ -35,19 +35,20 @@ func main() {
 
 	for _, playlist := range config.Configuration.Playlists {
 		fmt.Println()
+		timber.Debug(spotifyClient.Tokens.AccessToken)
 		timber.Info("Running sync for playlist:", playlist.Name)
 		appleMusicIDs, err := applemusic.PlaylistSongs(&httpClient, playlist.AppleMusicID)
 		if err != nil {
 			timber.Fatal(err, "failed to get apple music playlist")
 		}
-		timber.Done("[1/8] Found", len(appleMusicIDs), "from playlist in APPLE MUSIC")
+		timber.Done("[1/9] Found", len(appleMusicIDs), "from playlist in APPLE MUSIC")
 
 		appleMusicSongs, err := applemusic.PlaylistISRCs(&httpClient, appleMusicIDs)
 		if err != nil {
 			timber.Fatal(err, "failed to get isrc for", len(appleMusicIDs), "ids from apple music")
 		}
 		timber.Done(
-			"[2/8] Got",
+			"[2/9] Got",
 			len(appleMusicSongs),
 			"global isrc values for songs in APPLE MUSIC",
 		)
@@ -57,7 +58,7 @@ func main() {
 			timber.Fatal(err, "failed to get playlist data")
 		}
 		timber.Done(
-			"[3/8] Found",
+			"[3/9] Found",
 			len(spotifySongs),
 			"songs in the current SPOTIFY playlist",
 		)
@@ -69,18 +70,27 @@ func main() {
 		if err != nil {
 			timber.Fatal(err, "failed to get snapshot id for playlist")
 		}
-		timber.Done("[4/8] Got playlist version snapshot")
+		timber.Done("[4/9] Got playlist version snapshot")
 
 		toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
-		timber.Done("[5/8]", len(toAdd), "songs to add.", len(toDelete), "songs to remove.")
+		timber.Done("[5/9]", len(toAdd), "songs to add.", len(toDelete), "songs to remove.")
 
-		songsToAdd, err := spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
-		if err != nil {
-			timber.Fatal(err, "failed to find isrcs in spotify")
+		var songsToAdd []spotify.Song
+		if len(toAdd) != 0 {
+			songsToAdd, err = spotify.FindAppleMusicSongs(&spotifyClient, toAdd)
+			if err != nil {
+				timber.Fatal(err, "failed to find isrcs in spotify")
+			}
+			timber.Done("[6/9]", "Found", len(songsToAdd), "in spotify from Apple Music")
+		} else {
+			timber.Info("[6/9]", "Skipping as there are no longs to lookup in Apple Music")
 		}
-		timber.Done("[6/8]", len(toAdd), "songs to add.", len(toDelete), "songs to remove.")
 
 		if len(toDelete) != 0 {
+			timber.Info("Deleting:")
+			for _, song := range toDelete {
+				timber.Info(fmt.Sprintf("- \"%s\" by \"%s\"", song.Name, song.Artist))
+			}
 			err = spotify.EditSongs(
 				&spotifyClient,
 				playlist.SpotifyID,
@@ -90,25 +100,49 @@ func main() {
 			if err != nil {
 				timber.Fatal(err, "failed to remove songs to playlist")
 			}
-			timber.Done("[7/8]", "Removed", len(toDelete), "songs")
+			timber.Done("[7/9]", "Removed", len(toDelete), "songs")
 		} else {
-			timber.Info("[7/8] Skipped as there are no songs to remove")
+			timber.Info("[7/9] Skipped as there are no songs to remove")
 		}
 
-		err = spotify.EditSongs(&spotifyClient, playlist.SpotifyID, songsToAdd, nil)
-		if err != nil {
-			timber.Fatal(err, "failed to add songs to playlist")
+		if len(toAdd) != 0 {
+			timber.Info("Adding:")
+			for _, song := range songsToAdd {
+				timber.Info(fmt.Sprintf("+ \"%s\" by \"%s\"", song.Name, song.Artist))
+			}
+			err = spotify.EditSongs(&spotifyClient, playlist.SpotifyID, songsToAdd, nil)
+			if err != nil {
+				timber.Fatal(err, "failed to add songs to playlist")
+			}
+			timber.Done("[8/9]", "Added", len(toAdd), "songs")
+		} else {
+			timber.Info("[8/9] Skipped as there are no songs to add")
 		}
-		timber.Done("[8/8]", "Added", len(toAdd), "songs")
+
+		if len(toAdd) != 0 || len(toDelete) != 0 {
+			err = spotify.UpdateDescription(
+				&spotifyClient,
+				playlist.SpotifyID,
+				playlist.AppleMusicID,
+				newYork,
+			)
+			if err != nil {
+				timber.Fatal(err, "failed to updated playlist description")
+			}
+			timber.Info("[9/9] Updated playlist description")
+		} else {
+			timber.Info("[9/9] Skipped as playlist didn't get updated")
+		}
 		fmt.Println()
 	}
 }
 
-func setupLogger() {
+func setupLogger() *time.Location {
 	ny, err := time.LoadLocation("America/New_York")
 	if err != nil {
 		timber.Fatal(err, "failed to load new york timezone")
 	}
 	timber.Timezone(ny)
 	timber.TimeFormat("01/02 03:04:05 PM MST")
+	return ny
 }

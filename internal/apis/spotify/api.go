@@ -18,9 +18,10 @@ type SpotifyClient struct {
 }
 
 type spotifyRequest struct {
-	Method string
-	Path   string
-	Body   io.Reader
+	Method           string
+	Path             string
+	Body             io.Reader
+	NotExpectingJSON bool
 }
 
 func sendSpotifyAPIRequest[T any](
@@ -47,7 +48,7 @@ func sendSpotifyAPIRequest[T any](
 
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.Tokens.AccessToken))
 
-	resp, err := apis.RequestJSON[T]("[spotify]", client.HttpClient, req)
+	resp, err := apis.RequestJSON[T]("[spotify]", client.HttpClient, req, request.NotExpectingJSON)
 	if err != nil {
 		return zeroValue, fmt.Errorf("%w failed to make apple music API request", err)
 	}

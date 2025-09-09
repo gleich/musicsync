@@ -2,3 +2,78 @@
 name = "chill"
 apple_music = "p.AWXoZoxHLrvpJlY"
 spotify = "5SnoWhWIJRmJNkvdxCpMAe"
+
+[[playlists]]
+name = "alt"
+apple_music = "p.AWXoXPYSLrvpJlY"
+spotify = "7tN57nLbiiw4bliUyw2oYL"
+
+[[playlists]]
+name = "after hours"
+apple_music = "p.qQXLX2rHA75zg8e"
+spotify = "1NMII2bpE3l7CvBxYVK7Fu"
+
+[[playlists]]
+name = "smooth"
+apple_music = "p.AWXoXeAiLrvpJlY"
+spotify = "2CvjwmuE5CekSZ1CfezOQO"
+
+[[playlists]]
+name = "classics"
+apple_music = "p.gek1E8efLa68Adp"
+spotify = "2HYOAlwB570McLyD3nIJKG"
+
+[[playlists]]
+name = "80s"
+apple_music = "p.qQXLxPLtA75zg8e"
+spotify = "1DB0cG12kphRKvNzKPGmpf"
+
+[[playlists]]
+name = "divorced dad"
+apple_music = "p.LV0PXNoCl0EpDLW"
+spotify = "3p0bSspMsoZ0QodpDCcb3U"
+
+[[playlists]]
+name = "party"
+apple_music = "p.QvDQE5RIVbAeokL"
+spotify = "6AFH5WO2uZeSwKdirNvryH"
+
+[[playlists]]
+name = "bops"
+apple_music = "p.LV0PXL3Cl0EpDLW"
+spotify = "2Bc0msBHeRaNYUFO8LfHct"
+
+[[playlists]]
+name = "house"
+apple_music = "p.gek1EWzCLa68Adp"
+spotify = "3iMi8ew4XvYCCcS9P2iARw"
+
+[[playlists]]
+name = "focus"
+apple_music = "p.6xZaArOsvzb5OML"
+spotify = "261XCji6XWsXktcMumPIqa"
+
+[[playlists]]
+name = "funk"
+apple_music = "p.O1kz7EoFVmvz704"
+spotify = "1EDwymox6cXQlk7JGDMCbz"
+
+[[playlists]]
+name = "old man"
+apple_music = "p.V7VYVB0hZo53MQv"
+spotify = "3fDlIqV43BvPvtPs9ASsgU"
+
+[[playlists]]
+name = "rap"
+apple_music = "p.qQXLxPpFA75zg8e"
+spotify = "6MLAGkQPdSBMjit5O1hrws"
+
+[[playlists]]
+name = "rock"
+apple_music = "p.qQXLxpDuA75zg8e"
+spotify = "1Yh42cCAPWPFy55hw8VaWJ"
+
+[[playlists]]
+name = "country"
+apple_music = "p.O1kz7zbsVmvz704"
+spotify = "3jR0MH0NwzEdYuUY8nohmf"

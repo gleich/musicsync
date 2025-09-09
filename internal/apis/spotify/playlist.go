@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"go.mattglei.ch/musicsync/internal/utils"
 )
@@ -16,12 +17,7 @@ type PlaylistResponse struct {
 
 type PlaylistTracksResponse struct {
 	Items []struct {
-		Track struct {
-			ID          string `json:"id"`
-			ExternalIDs struct {
-				ISRC string `json:"isrc"`
-			} `json:"external_ids"`
-		} `json:"track"`
+		Track songResponse `json:"track"`
 	} `json:"items"`
 	Next string `json:"next"`
 }
@@ -62,8 +58,10 @@ func PlaylistSongs(client *SpotifyClient, id string) ([]Song, error) {
 		}
 		for _, track := range resp.Items {
 			songs = append(songs, Song{
-				ID:   track.Track.ID,
-				ISRC: track.Track.ExternalIDs.ISRC,
+				ID:     track.Track.ID,
+				ISRC:   track.Track.ExternalIDs.ISRC,
+				Name:   track.Track.Name,
+				Artist: track.Track.Artists[0].Name,
 			})
 		}
 
@@ -117,6 +115,38 @@ func EditSongs(client *SpotifyClient, id string, songs []Song, snapshotID *strin
 		if err != nil {
 			return fmt.Errorf("%w failed to send spotify api request", err)
 		}
+	}
+
+	return nil
+}
+
+func UpdateDescription(
+	client *SpotifyClient,
+	spotifyID string,
+	appleMusicID string,
+	location *time.Location,
+) error {
+	description := fmt.Sprintf(
+		"https://mattglei.ch/music/playlists/%s. Automatically updated %s.",
+		appleMusicID,
+		time.Now().In(location).Format("January 2 2006 at 3:04pm MST"),
+	)
+
+	binary, err := json.Marshal(struct {
+		Description string `json:"description"`
+	}{Description: description})
+	if err != nil {
+		return fmt.Errorf("%w failed to marshal JSON", err)
+	}
+
+	_, err = sendSpotifyAPIRequest[any](client, spotifyRequest{
+		Method:           http.MethodPut,
+		Path:             fmt.Sprintf("/v1/playlists/%s", spotifyID),
+		Body:             bytes.NewReader(binary),
+		NotExpectingJSON: true,
+	})
+	if err != nil {
+		return fmt.Errorf("%w failed to send spotify api request", err)
 	}
 
 	return nil

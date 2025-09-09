@@ -38,7 +38,7 @@ func (c *SpotifyClient) Authorize() error {
 		return fmt.Errorf("%w creating new request failed", err)
 	}
 
-	resp, err := apis.RequestJSON[Tokens]("[spotify]", c.HttpClient, req)
+	resp, err := apis.RequestJSON[Tokens]("[spotify]", c.HttpClient, req, false)
 	if err != nil {
 		return fmt.Errorf("%w performing request failed", err)
 

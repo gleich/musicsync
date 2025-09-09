@@ -10,15 +10,26 @@ import (
 )
 
 type Song struct {
-	ID   string
-	ISRC string
+	ID     string
+	ISRC   string
+	Name   string
+	Artist string
+}
+
+type songResponse struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Artists []struct {
+		Name string `json:"name"`
+	} `json:"artists"`
+	ExternalIDs struct {
+		ISRC string `json:"isrc"`
+	} `json:"external_ids"`
 }
 
 type searchResponse struct {
 	Tracks struct {
-		Items []struct {
-			ID string `json:"id"`
-		}
+		Items []songResponse
 	} `json:"tracks"`
 }
 
@@ -69,7 +80,10 @@ func FindAppleMusicSongs(
 			resp = trackSearchResponse
 		}
 		foundSong := resp.Tracks.Items[0]
-		songs = append(songs, Song{ID: foundSong.ID})
+		songs = append(
+			songs,
+			Song{ID: foundSong.ID, Artist: foundSong.Artists[0].Name, Name: foundSong.Name},
+		)
 	}
 	return songs, nil
 }
