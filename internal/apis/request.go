@@ -26,6 +26,7 @@ var ErrWarning = errors.New("non-critical error encountered during request")
 // WarningError. Non-2xx HTTP responses are also treated as warnings.
 func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, error) {
 	var body []byte
+	retries := 0
 	for {
 		ctx, cancel := context.WithTimeout(req.Context(), 1*time.Minute)
 		defer cancel()
@@ -52,15 +53,6 @@ func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, 
 			return []byte{}, fmt.Errorf("%w sending request to %s failed", err, req.URL.String())
 		}
 
-		if resp.StatusCode == http.StatusTooManyRequests {
-			timber.Warning(
-				http.StatusTooManyRequests,
-				"error (rate limiting). Waiting 30 seconds and trying request again",
-			)
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			timber.Warning(
 				logPrefix,
@@ -69,6 +61,11 @@ func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, 
 				"from",
 				req.URL.String(),
 			)
+			if retries < 3 {
+				timber.Warning("retrying request in 30 seconds...")
+				retries++
+				continue
+			}
 			return []byte{}, ErrWarning
 		}
 

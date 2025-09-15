@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"go.mattglei.ch/lcp/pkg/lcp"
 	"go.mattglei.ch/musicsync/internal/apis/applemusic"
 	"go.mattglei.ch/musicsync/internal/apis/spotify"
-	"go.mattglei.ch/musicsync/internal/config"
 	"go.mattglei.ch/musicsync/internal/diff"
 	"go.mattglei.ch/musicsync/internal/secrets"
 	"go.mattglei.ch/timber"
@@ -18,7 +18,6 @@ func main() {
 	timber.Done("booted")
 
 	secrets.Load()
-	config.Load()
 
 	var (
 		httpClient    = http.Client{Timeout: 20 * time.Second}
@@ -33,10 +32,15 @@ func main() {
 		timber.Fatal(err, "failed to authorize spotify")
 	}
 
-	for _, playlist := range config.Configuration.Playlists {
+	lcpClient := lcp.Client{Token: secrets.ENV.LcpToken}
+	playlists, err := lcp.FetchAppleMusicSyncedPlaylists(&lcpClient)
+	if err != nil {
+		timber.Fatal(err, "failed to fetch playlists to sync")
+	}
+
+	for _, playlist := range playlists {
 		fmt.Println()
 		timber.Debug(spotifyClient.Tokens.AccessToken)
-		timber.Info("Running sync for playlist:", playlist.Name)
 		appleMusicIDs, err := applemusic.PlaylistSongs(&httpClient, playlist.AppleMusicID)
 		if err != nil {
 			timber.Fatal(err, "failed to get apple music playlist")

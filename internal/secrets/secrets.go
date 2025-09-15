@@ -13,6 +13,8 @@ import (
 var ENV Secrets
 
 type Secrets struct {
+	LcpToken string `env:"LCP_TOKEN"`
+
 	AppleMusicAppToken  string `env:"APPLE_MUSIC_APP_TOKEN"`
 	AppleMusicUserToken string `env:"APPLE_MUSIC_USER_TOKEN"`
 
