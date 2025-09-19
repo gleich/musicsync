@@ -40,7 +40,7 @@ func main() {
 
 	for _, playlist := range playlists {
 		fmt.Println()
-		timber.Debug(spotifyClient.Tokens.AccessToken)
+		timber.Info("Processing", playlist.Name)
 		appleMusicIDs, err := applemusic.PlaylistSongs(&httpClient, playlist.AppleMusicID)
 		if err != nil {
 			timber.Fatal(err, "failed to get apple music playlist")

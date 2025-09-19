@@ -63,6 +63,7 @@ func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, 
 			)
 			if retries < 3 {
 				timber.Warning("retrying request in 30 seconds...")
+				time.Sleep(30 * time.Second)
 				retries++
 				continue
 			}
