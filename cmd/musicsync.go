@@ -60,7 +60,7 @@ func updateCycle(
 		if err != nil {
 			return fmt.Errorf("%w failed to get apple music playlist", err)
 		}
-		timber.Done("[1/9] Found", len(appleMusicIDs), "from playlist in APPLE MUSIC")
+		timber.Done("[1/9] Found", len(appleMusicIDs), "songs from playlist in APPLE MUSIC")
 
 		appleMusicSongs, err := applemusic.PlaylistISRCs(httpClient, appleMusicIDs)
 		if err != nil {
