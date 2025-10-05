@@ -6,7 +6,6 @@ import (
 	"net/url"
 
 	"go.mattglei.ch/musicsync/internal/apis/applemusic"
-	"go.mattglei.ch/timber"
 )
 
 type Song struct {
@@ -55,7 +54,6 @@ func FindAppleMusicSongs(
 			return []Song{}, fmt.Errorf("%w failed to search for song with isrc of %s", err, song)
 		}
 		if len(resp.Tracks.Items) == 0 {
-			timber.Warning("isrc for", song.Name, "not found in spotify. ISRC:", song.ISRC)
 
 			params.Set("q", fmt.Sprintf("track:\"%s\" artist:\"%s\"", song.Name, song.Artist))
 			trackSearchResponse, err := sendSpotifyAPIRequest[searchResponse](
@@ -74,7 +72,6 @@ func FindAppleMusicSongs(
 				)
 			}
 			if len(trackSearchResponse.Tracks.Items) == 0 {
-				timber.Warning("second search using", song.Name, "and", song.Artist, "failed")
 				continue
 			}
 			resp = trackSearchResponse

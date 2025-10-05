@@ -77,7 +77,7 @@ func main() {
 		timber.Done("[4/9] Got playlist version snapshot")
 
 		toAdd, toDelete := diff.PlaylistDiff(appleMusicSongs, spotifySongs)
-		timber.Done("[5/9]", len(toAdd), "songs to add.", len(toDelete), "songs to remove.")
+		timber.Done("[5/9]", "Found playlist diff")
 
 		var songsToAdd []spotify.Song
 		if len(toAdd) != 0 {
@@ -87,11 +87,12 @@ func main() {
 			}
 			timber.Done("[6/9]", "Found", len(songsToAdd), "in spotify from Apple Music")
 		} else {
-			timber.Info("[6/9]", "Skipping as there are no longs to lookup in Apple Music")
+			timber.Info("[6/9]", "Skipping as there are no songs add")
 		}
+		songsToAdd, toDelete = diff.FilterPlaylists(songsToAdd, toDelete)
 
 		if len(toDelete) != 0 {
-			timber.Info("Deleting:")
+			timber.Info("Deleting", len(toDelete), "songs")
 			for _, song := range toDelete {
 				timber.Info(fmt.Sprintf("- \"%s\" by \"%s\"", song.Name, song.Artist))
 			}
@@ -109,8 +110,8 @@ func main() {
 			timber.Info("[7/9] Skipped as there are no songs to remove")
 		}
 
-		if len(toAdd) != 0 {
-			timber.Info("Adding:")
+		if len(songsToAdd) != 0 {
+			timber.Info("Adding", len(songsToAdd), "songs")
 			for _, song := range songsToAdd {
 				timber.Info(fmt.Sprintf("+ \"%s\" by \"%s\"", song.Name, song.Artist))
 			}

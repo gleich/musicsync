@@ -68,7 +68,8 @@ func PlaylistSongs(client *SpotifyClient, id string) ([]Song, error) {
 		if resp.Next == "" {
 			break
 		}
-		req.Path = strings.TrimPrefix(resp.Next, "https://api.spotify.com/")
+
+		req.Path = strings.TrimPrefix(resp.Next, "https://api.spotify.com")
 	}
 
 	return songs, nil
@@ -127,7 +128,7 @@ func UpdateDescription(
 	location *time.Location,
 ) error {
 	description := fmt.Sprintf(
-		"https://mattglei.ch/music/playlists/%s. Automatically updated %s.",
+		"https://mattglei.ch/music/playlists/%s. Auto updated %s.",
 		appleMusicID,
 		time.Now().In(location).Format("January 2 2006 at 3:04pm MST"),
 	)

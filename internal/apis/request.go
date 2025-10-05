@@ -58,7 +58,7 @@ func Request(logPrefix string, client *http.Client, req *http.Request) ([]byte, 
 				logPrefix,
 				resp.StatusCode,
 				fmt.Sprintf("(%s)", strings.ToLower(http.StatusText(resp.StatusCode))),
-				"from",
+				"to",
 				req.URL.String(),
 			)
 			if retries < 3 {

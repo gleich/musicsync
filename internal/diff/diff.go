@@ -15,7 +15,7 @@ func PlaylistDiff(
 	)
 
 	for _, appleMusicSong := range appleMusicSongs {
-		var contains = false
+		contains := false
 		for _, spotifySong := range spotifySongs {
 			if spotifySong.ISRC == appleMusicSong.ISRC ||
 				(spotifySong.Name == appleMusicSong.Name && spotifySong.Artist == appleMusicSong.Artist) {
@@ -29,7 +29,7 @@ func PlaylistDiff(
 	}
 
 	for _, spotifySong := range spotifySongs {
-		var contains = false
+		contains := false
 		for _, appleMusicSong := range appleMusicSongs {
 			if spotifySong.ISRC == appleMusicSong.ISRC ||
 				(spotifySong.Name == appleMusicSong.Name && spotifySong.Artist == appleMusicSong.Artist) {
