@@ -146,7 +146,7 @@ func main() {
 				timber.Info("[9/9] Skipped as playlist didn't get updated")
 			}
 
-			timber.Info("Waiting 5min before syncing next playlist")
+			timber.Info("Waiting 5 minutes before syncing next playlist")
 			time.Sleep(5 * time.Minute)
 		}
 	}
