@@ -48,6 +48,7 @@ func (c *Client) Authorize() error {
 
 	c.mutex.Lock()
 	c.Tokens = &resp
+	c.Tokens.RefreshToken = secrets.ENV.SpotifyRefreshToken
 	c.mutex.Unlock()
 	return nil
 }
