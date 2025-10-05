@@ -106,7 +106,7 @@ func updateCycle(
 			}
 			timber.Done("[6/9]", "Found", len(songsToAdd), "in spotify from Apple Music")
 		} else {
-			timber.Info("[6/9]", "Skipping as there are no songs add")
+			timber.Info("[6/9]", "Skipped as there are no songs in initial to add list")
 		}
 		songsToAdd, toDelete = diff.FilterPlaylists(songsToAdd, toDelete)
 
