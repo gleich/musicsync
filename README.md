@@ -5,4 +5,4 @@
 [![lint](https://github.com/gleich/musicsync/actions/workflows/lint.yml/badge.svg)](https://github.com/gleich/musicsync/actions/workflows/lint.yml)
 [![report card](https://goreportcard.com/badge/go.mattglei.ch/musicsync)](https://goreportcard.com/report/go.mattglei.ch/musicsync)
 
-This project is currently a work in progress.
+Sync Apply Music playlists to Spotify. View all of my playlists at [mattglei.ch](https://mattglei.ch).
