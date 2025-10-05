@@ -1,0 +1,26 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  caprover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: docker.mattglei.ch
+          username: admin
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - run: |
+          docker build -t docker.mattglei.ch/musicsync .
+          docker push docker.mattglei.ch/musicsync
+      - uses: caprover/deploy-from-github@v1.1.2
+        with:
+          server: https://lab.mattglei.ch
+          app: musicsync
+          token: '${{ secrets.CAPROVER_APP_TOKEN }}'
+          image: docker.mattglei.ch/musicsync
