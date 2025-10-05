@@ -35,7 +35,7 @@ type track struct {
 	URI string `json:"uri"`
 }
 
-func PlaylistSnapshot(client *SpotifyClient, id string) (string, error) {
+func PlaylistSnapshot(client *Client, id string) (string, error) {
 	req := spotifyRequest{Method: http.MethodGet, Path: fmt.Sprintf("/v1/playlists/%s", id)}
 	resp, err := sendSpotifyAPIRequest[PlaylistResponse](client, req)
 	if err != nil {
@@ -44,7 +44,7 @@ func PlaylistSnapshot(client *SpotifyClient, id string) (string, error) {
 	return resp.SnapshotID, nil
 }
 
-func PlaylistSongs(client *SpotifyClient, id string) ([]Song, error) {
+func PlaylistSongs(client *Client, id string) ([]Song, error) {
 	req := spotifyRequest{Method: http.MethodGet, Path: fmt.Sprintf("/v1/playlists/%s/tracks", id)}
 	songs := []Song{}
 	for {
@@ -75,7 +75,7 @@ func PlaylistSongs(client *SpotifyClient, id string) ([]Song, error) {
 	return songs, nil
 }
 
-func EditSongs(client *SpotifyClient, id string, songs []Song, snapshotID *string) error {
+func EditSongs(client *Client, id string, songs []Song, snapshotID *string) error {
 	batches := utils.Batch(songs, 100)
 	var method string
 	if snapshotID == nil {
@@ -122,7 +122,7 @@ func EditSongs(client *SpotifyClient, id string, songs []Song, snapshotID *strin
 }
 
 func UpdateDescription(
-	client *SpotifyClient,
+	client *Client,
 	spotifyID string,
 	appleMusicID string,
 	location *time.Location,

@@ -11,7 +11,7 @@ import (
 	"go.mattglei.ch/musicsync/internal/apis"
 )
 
-type SpotifyClient struct {
+type Client struct {
 	HttpClient *http.Client
 	Tokens     *Tokens
 	mutex      sync.RWMutex
@@ -25,7 +25,7 @@ type spotifyRequest struct {
 }
 
 func sendSpotifyAPIRequest[T any](
-	client *SpotifyClient,
+	client *Client,
 	request spotifyRequest,
 ) (T, error) {
 	var zeroValue T

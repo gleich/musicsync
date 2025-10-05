@@ -18,7 +18,7 @@ type Tokens struct {
 	ExpiresAt    time.Time
 }
 
-func (c *SpotifyClient) Authorize() error {
+func (c *Client) Authorize() error {
 	params := url.Values{
 		"grant_type":    {"refresh_token"},
 		"refresh_token": {c.Tokens.RefreshToken},

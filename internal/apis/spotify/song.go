@@ -33,7 +33,7 @@ type searchResponse struct {
 }
 
 func FindAppleMusicSongs(
-	client *SpotifyClient,
+	client *Client,
 	appleMusicSongs []applemusic.Song,
 ) ([]Song, error) {
 	songs := []Song{}
