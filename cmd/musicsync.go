@@ -143,7 +143,7 @@ func updateCycle(
 			timber.Info("[8/9] Skipped as there are no songs to add")
 		}
 
-		if len(toAdd) != 0 || len(toDelete) != 0 {
+		if len(songsToAdd) != 0 || len(toDelete) != 0 {
 			err = spotify.UpdateDescription(
 				spotifyClient,
 				playlist.SpotifyID,
