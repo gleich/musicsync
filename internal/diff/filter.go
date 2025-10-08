@@ -14,7 +14,8 @@ func FilterPlaylists(
 	for _, songToAdd := range toAdd {
 		contains := false
 		for _, songToRemove := range toDelete {
-			if songToAdd.ID == songToRemove.ID {
+			if songToAdd.ID == songToRemove.ID ||
+				(songToAdd.Artist == songToRemove.Artist && songToAdd.Name == songToRemove.Name) {
 				contains = true
 				break
 			}
@@ -27,7 +28,8 @@ func FilterPlaylists(
 	for _, songToRemove := range toDelete {
 		contains := false
 		for _, songToAdd := range toAdd {
-			if songToRemove.ID == songToAdd.ID {
+			if songToRemove.ID == songToAdd.ID ||
+				(songToRemove.Artist == songToAdd.Artist && songToRemove.Name == songToAdd.Name) {
 				contains = true
 				break
 			}

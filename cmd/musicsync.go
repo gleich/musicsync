@@ -110,6 +110,8 @@ func updateCycle(
 		}
 		songsToAdd, toDelete = diff.FilterPlaylists(songsToAdd, toDelete)
 
+		updated := false
+
 		if len(toDelete) != 0 {
 			timber.Info("Deleting", len(toDelete), "songs")
 			for _, song := range toDelete {
@@ -124,6 +126,7 @@ func updateCycle(
 			if err != nil {
 				return fmt.Errorf("%w failed to remove songs from playlist", err)
 			}
+			updated = true
 			timber.Done("[7/9]", "Removed", len(toDelete), "songs")
 		} else {
 			timber.Info("[7/9] Skipped as there are no songs to remove")
@@ -138,12 +141,13 @@ func updateCycle(
 			if err != nil {
 				return fmt.Errorf("%w failed to add songs to playlist", err)
 			}
-			timber.Done("[8/9]", "Added", len(toAdd), "songs")
+			updated = true
+			timber.Done("[8/9]", "Added", len(songsToAdd), "songs")
 		} else {
 			timber.Info("[8/9] Skipped as there are no songs to add")
 		}
 
-		if len(songsToAdd) != 0 || len(toDelete) != 0 {
+		if updated {
 			err = spotify.UpdateDescription(
 				spotifyClient,
 				playlist.SpotifyID,
