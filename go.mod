@@ -7,7 +7,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
 	go.mattglei.ch/lcp v1.6.0
-	go.mattglei.ch/timber v1.3.2
+	go.mattglei.ch/timber v1.4.0
 )
 
 require (
