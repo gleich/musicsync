@@ -130,7 +130,7 @@ func UpdateDescription(
 	description := fmt.Sprintf(
 		"https://mattglei.ch/music/playlists/%s. Auto updated %s.",
 		appleMusicID,
-		time.Now().In(location).Format("January 2 2006 at 3:04pm MST"),
+		time.Now().In(location).Format("Jan 2 2006 at 3:04pm MST"),
 	)
 
 	binary, err := json.Marshal(struct {
