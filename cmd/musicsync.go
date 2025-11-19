@@ -55,6 +55,11 @@ func updateCycle(
 
 	for _, playlist := range playlists {
 		fmt.Println()
+
+		if playlist.NoSync {
+			timber.Info(playlist.Name, "has syncing paused. skipping.")
+			continue
+		}
 		timber.Info("Processing", playlist.Name)
 		appleMusicIDs, err := applemusic.PlaylistSongs(httpClient, playlist.AppleMusicID)
 		if err != nil {
