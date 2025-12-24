@@ -152,7 +152,7 @@ func updateCycle(
 			timber.Info("[8/9] Skipped as there are no songs to add")
 		}
 
-		if updated {
+		if updated && !playlist.Private {
 			err = spotify.UpdateDescription(
 				spotifyClient,
 				playlist.SpotifyID,
@@ -163,6 +163,8 @@ func updateCycle(
 				return fmt.Errorf("%w failed to update playlist description", err)
 			}
 			timber.Info("[9/9] Updated playlist description")
+		} else if playlist.Private {
+			timber.Info("[9/9] Skipped as playlist is private")
 		} else {
 			timber.Info("[9/9] Skipped as playlist didn't get updated")
 		}
