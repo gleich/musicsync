@@ -120,7 +120,7 @@ func updateCycle(
 		if len(toDelete) != 0 {
 			timber.Info("Deleting", len(toDelete), "songs")
 			for _, song := range toDelete {
-				timber.Info(fmt.Sprintf("- \"%s\" by \"%s\"", song.Name, song.Artist))
+				timber.Infof("- \"%s\" by \"%s\"", song.Name, song.Artist)
 			}
 			err = spotify.EditSongs(
 				spotifyClient,
@@ -140,7 +140,7 @@ func updateCycle(
 		if len(songsToAdd) != 0 {
 			timber.Info("Adding", len(songsToAdd), "songs")
 			for _, song := range songsToAdd {
-				timber.Info(fmt.Sprintf("+ \"%s\" by \"%s\"", song.Name, song.Artist))
+				timber.Infof("+ \"%s\" by \"%s\"", song.Name, song.Artist)
 			}
 			err = spotify.EditSongs(spotifyClient, playlist.SpotifyID, songsToAdd, nil)
 			if err != nil {
