@@ -1,6 +1,6 @@
 module go.mattglei.ch/musicsync
 
-go 1.25
+go 1.25.5
 
 require (
 	github.com/caarlos0/env/v11 v11.3.1
